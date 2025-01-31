@@ -63,7 +63,7 @@ export default function App() {
 
                                     <li>
                                         {task.name}
-                                        <button className="delete-button">
+                                        <button onClick={() => {appMethods.removeTask(i, task.id)}} className="delete-button">
                                             🗑️
                                         </button>
                                     </li>

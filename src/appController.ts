@@ -105,7 +105,7 @@ export function main() {
                 let count = 0
                 currentWeek.days.forEach(day => {
                     if(day){
-                        day.tasks.forEach(task => {
+                        day.tasks.forEach(() => {
                             count++
                         })
                     }
@@ -122,6 +122,22 @@ export function main() {
             }else{
                 return currentWeek.days[day].tasks
             }
+        },
+        removeTask: (day: number, taskId: string): void => {
+            let newAppStatus:Status = {
+                currentWeek: appStatus.currentWeek,
+                weeks:[],
+                idCounter: appStatus.idCounter + 1
+            }
+            appStatus.weeks.forEach((week,i) => {
+                if(week){
+                    newAppStatus.weeks[i] = appMethods.cloneWeek(week)
+                }
+            })
+
+            newAppStatus.weeks[appStatus.currentWeek].days[day].tasks = newAppStatus.weeks[appStatus.currentWeek].days[day].tasks.filter(task => task.id !== taskId)
+
+            setAppStatus(newAppStatus)
         },
         createTask: (appStatus:Status, day:number, taskName:string): void => {
 
@@ -142,7 +158,6 @@ export function main() {
 
             let week = newAppStatus.weeks[appStatus.currentWeek]
 
-            console.log(week.days[day])
             if(!week.days[day]){
                 week.days[day] = {
                     tasks:[
@@ -181,8 +196,8 @@ export function main() {
         },
         cloneWeek: (week:Week): Week => {
             let clonedWeek: Week = {days: []}
-            week.days.forEach(day => {
-                clonedWeek.days.push(appMethods.cloneDay(day))
+            week.days.forEach((day, i) => {
+                clonedWeek.days[i] = appMethods.cloneDay(day)
             })
 
             return clonedWeek
