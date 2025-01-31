@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { Dispatch, FormEvent, SetStateAction, useEffect, useState } from "react"
 
 const MAX_MONTH_COUNT = 52
 export const WEEK_DAYS = [
@@ -7,7 +7,7 @@ export const WEEK_DAYS = [
 
 export type Task = {
     name: string,
-    id: number
+    id: string
 }
 
 export type Day = {
@@ -43,6 +43,12 @@ function recoverStorageData(): Status {
 
     if(localStorage.getItem("appStatus")){
         appStatus = JSON.parse(localStorage.getItem("appStatus")!) as Status
+        if(!appStatus.weeks){
+            appStatus.weeks = []
+        }
+        if(!appStatus.idCounter){
+            appStatus.idCounter = 0
+        }
     }else{
         appStatus = {
             currentWeek: 0,
@@ -98,9 +104,11 @@ export function main() {
             }else{
                 let count = 0
                 currentWeek.days.forEach(day => {
-                    day.tasks.forEach(task => {
-                        count++
-                    })
+                    if(day){
+                        day.tasks.forEach(task => {
+                            count++
+                        })
+                    }
                 })
 
                 return count
@@ -115,6 +123,79 @@ export function main() {
                 return currentWeek.days[day].tasks
             }
         },
+        createTask: (appStatus:Status, day:number, taskName:string): void => {
+
+            let newAppStatus:Status = {
+                currentWeek: appStatus.currentWeek,
+                weeks:[],
+                idCounter: appStatus.idCounter + 1
+            }
+            appStatus.weeks.forEach((week,i) => {
+                if(week){
+                    newAppStatus.weeks[i] = appMethods.cloneWeek(week)
+                }
+            })
+
+            if(!newAppStatus.weeks[appStatus.currentWeek]){
+                newAppStatus.weeks[appStatus.currentWeek] = {days: []}
+            }
+
+            let week = newAppStatus.weeks[appStatus.currentWeek]
+
+            console.log(week.days[day])
+            if(!week.days[day]){
+                week.days[day] = {
+                    tasks:[
+                        {
+                            name: taskName, 
+                            id: "task" + (appStatus.idCounter + 1)
+                        }
+                    ]
+                }
+            }else{
+                week.days[day] = {
+                    tasks:[
+                        ...week.days[day].tasks,
+                        {
+                            name: taskName, 
+                            id: "task" + (appStatus.idCounter + 1)
+                        }
+                    ]
+                }
+            }
+
+            //let weeks = {...newAppStatus.weeks}
+            //weeks[appStatus.currentWeek] = week
+            newAppStatus.weeks[newAppStatus.currentWeek] = week
+            setAppStatus(newAppStatus)
+        },
+        onSubmit: (ev:KeyboardEvent|FormEvent|undefined, appStatus:Status , daySelector: number, textPrompt: string, setTextPrompt:Dispatch<SetStateAction<string>>): void => {
+            if(ev){
+                ev.preventDefault()
+            }
+
+            if(textPrompt !== ""){
+                appMethods.createTask(appStatus, daySelector, textPrompt)
+            }
+            setTextPrompt("")
+        },
+        cloneWeek: (week:Week): Week => {
+            let clonedWeek: Week = {days: []}
+            week.days.forEach(day => {
+                clonedWeek.days.push(appMethods.cloneDay(day))
+            })
+
+            return clonedWeek
+        },
+        cloneDay: (day:Day):Day => {
+            let clonedDay: Day = {tasks: []}
+
+            clonedDay.tasks.forEach(task => {
+                clonedDay.tasks.push({...task})
+            })
+
+            return day
+        }
     }
 
     return { appStatus, appMethods }

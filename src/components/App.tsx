@@ -1,8 +1,8 @@
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import "../css/index.css"
 
-import { main, Week, Day, Task, WEEK_DAYS } from "../appController"
-import { useEffect, useState } from 'react'
+import { main, Week, Task, WEEK_DAYS } from "../appController"
+import { useState } from 'react'
 
 export default function App() {
 
@@ -12,6 +12,7 @@ export default function App() {
     //useEffect(() => {console.log(textPrompt)},[textPrompt])
 
     let currentWeek : Week|undefined = appStatus.weeks ? appStatus.weeks[appStatus.currentWeek] : undefined
+
 
     return (<>
         <HelmetProvider>
@@ -23,17 +24,17 @@ export default function App() {
         <article className="container">
             <section className="header">
                 <h1>Calendario Semanal</h1>
-                <img src="public/img/logo.png" alt="Logo" className="logo" />
+                <img src="/img/logo.png" alt="Logo" className="logo" />
             </section>
             <section className="week-navigation">
                 <button onClick={appMethods.subOneMonth}>Semana Anterior</button>
                 <span>Semana {appStatus.currentWeek}</span>
                 <button onClick={appMethods.addOneMonth}>Semana Siguiente</button>
             </section>
-            <form className="form">
+            <form onKeyDown={e => {if(e.key === "Enter"){appMethods.onSubmit(e, appStatus, daySelector, textPrompt, setTextPrompt)}}} className="form" onSubmit={e => {appMethods.onSubmit(e, appStatus, daySelector, textPrompt, setTextPrompt)}}>
                 <label>
                     Día:
-                    <select value={daySelector} onChange={ev => {setDaySelector(parseInt(ev.target.value))}}>
+                    <select id="selectElement" value={daySelector} onChange={ev => {setDaySelector(parseInt(ev.target.value))}}>
                         {WEEK_DAYS.map((day, i) => (
                             <option key={i} value={i}>{day}</option>
                         ))}
@@ -41,7 +42,7 @@ export default function App() {
                 </label>
                 <label>
                     Tarea:
-                    <input onChange={ev => {setTextPrompt(ev.target.value)}}
+                    <input id="inputElement" onChange={ev => {setTextPrompt(ev.target.value)}}
                         type="text"
                         value={textPrompt}
                         placeholder="Escribe la tarea"
@@ -53,12 +54,12 @@ export default function App() {
                 <h2>Total de tareas esta semana: {appMethods.getWeekTasksCount(currentWeek)}</h2>
                 <aside className="calendar">
                     {WEEK_DAYS.map((day, i) => (
-                        <div key={i} className="day">
+                        <div key={day} className="day">
                             <h3>
                                 {day} ({appMethods.getDayTasksCount(currentWeek, i)} tareas)
                             </h3>
                             {appMethods.getDayTasks(currentWeek, i).map((task:Task) => (
-                                <ul className="task-list">
+                                <ul key={"task:"+task.id+"-"+day} className="task-list">
 
                                     <li>
                                         {task.name}
